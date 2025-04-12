@@ -1,4 +1,10 @@
 import { NextResponse } from 'next/server';
+import { readFileSync } from 'fs';
+import { Pool } from 'pg';
+
+const pool = new Pool({
+  connectionString: 'postgresql://ticker:password@localhost:5432/ticker'
+});
 
 export interface Filter {
   column: string;
@@ -11,51 +17,78 @@ export interface ChartConfig {
   aggregationColumn: string;
 }
 
-// Mock data generator based on configuration
-function generateChartData(config: ChartConfig) {
-  const fetchDatasets = (config: ChartConfig): { labels: string[]; datasets: { label: string; data: number[] }[] } => {
-    // TODO AXEL: Fetch data from database
-    // labels = ["2001", "2002", "2003", "2004", "2005"]
-    // label = "Biotech"
-    // data = [100000, 200000, 300000, 400000, 500000]
-
-    const labels = ["2001", "2002", "2003", "2004", "2005"];
-    return {labels: labels, datasets: [
-      {
-        label: "Biotech",
-        data: labels.map(() => Math.floor(Math.random() * 1000000) + 500000)
-      },
-      {
-        label: "Cleantech",
-        data: labels.map(() => Math.floor(Math.random() * 1000000) + 500000)
-      },
-      {
-        label: "Healthcare",
-        data: labels.map(() => Math.floor(Math.random() * 1000000) + 500000)
-      }
-    ]
-  };
+interface FilterParams {
+  filterSQL: string;
+  aggregateFn: 'SUM' | 'AVG' | 'MAX' | 'MIN';
 }
 
-  const data = fetchDatasets(config);
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    borderColor?: string;
+    backgroundColor?: string;
+    tension?: number;
+  }[];
+}
 
-  const getRandomColor = () => {
-    const r = Math.floor(Math.random() * 255);
-    const g = Math.floor(Math.random() * 255);
-    const b = Math.floor(Math.random() * 255);
-    return `rgb(${r}, ${g}, ${b})`;
-  };
+// === Helpers ===
+function buildFilterSQL(filters: Filter[]): string {
+  if (!filters || filters.length === 0) return '';
+  const { column, value } = filters[0];
+  return `WHERE ${column} in (${value})`;
+}
+
+function parseAggregateFn(fn: string | undefined): 'SUM' | 'AVG' {
+  const upper = (fn || '').toUpperCase();
+  return upper === 'AVG' ? 'AVG' : 'SUM';
+}
+
+function getRandomColor(): string {
+  const r = Math.floor(Math.random() * 255);
+  const g = Math.floor(Math.random() * 255);
+  const b = Math.floor(Math.random() * 255);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+export async function generateChartData({
+  filterSQL,
+  aggregateFn
+}: FilterParams): Promise<ChartData> {
+  const rawSql = readFileSync('./queries/invested_capital_by_sector.sql', 'utf-8');
+  const finalSql = rawSql
+    .replace('{{COMPANIES_FILTER}}', filterSQL)
+    .replace('{{AGGREGATE_FUNCTION}}', aggregateFn);
+
+  const result = await pool.query(finalSql);
+
+  const grouped: Record<string, { [year: string]: number }> = {};
+  const yearSet: Set<string> = new Set();
+
+  for (const row of result.rows) {
+    const year = row.year.toString();
+    const label = `${row.industry} (${row.group_label})`;
+    yearSet.add(year);
+    grouped[label] ??= {};
+    grouped[label][year] = Number(row.total_invested_chf);
+  }
+
+  const labels = [...yearSet].sort();
+  const datasets = Object.entries(grouped).map(([label, yearlyData]) => ({
+    label,
+    data: labels.map(year => yearlyData[year] ?? 0)
+  }));
 
   return {
-    labels: data.labels,
-    datasets: data.datasets.map(dataset => {
+    labels,
+    datasets: datasets.map(ds => {
       const color = getRandomColor();
       return {
-        label: dataset.label,
-        data: dataset.data,
+        ...ds,
         borderColor: color,
         backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
-        tension: 0.3,
+        tension: 0.3
       };
     })
   };
@@ -63,41 +96,60 @@ function generateChartData(config: ChartConfig) {
 
 export async function POST(request: Request) {
   try {
-    const config: ChartConfig = await request.json();
-    
-    // Log detailed chart configuration
-    console.log('=== Chart Configuration ===');
-    console.log('Value Column:', config.valueColumn);
-    console.log('Aggregation Column:', config.aggregationColumn);
-    console.log('Filters:', JSON.stringify(config.filters, null, 2));
-    console.log('========================');
+    let config: ChartConfig;
 
-    const data = generateChartData(config);
+    // Attempt to parse body; fallback to default config if it fails or is empty
+    try {
+      const body = await request.json();
+      config = {
+        filters: body.filters?.length ? body.filters : [{
+          id: 'default',
+          column: 'gender_ceo',
+          value: 'Female'
+        }],
+        valueColumn: body.valueColumn || 'amount',
+        aggregationColumn: (body.aggregationColumn || 'SUM').toUpperCase()
+      };
+    } catch {
+      // Handle completely missing or malformed body
+      config = {
+        filters: [{
+          id: 'default',
+          column: 'gender_ceo',
+          value: 'Female'
+        }],
+        valueColumn: 'amount',
+        aggregationColumn: 'SUM'
+      };
+    }
+
+    const filterSQL = buildFilterSQL(config.filters);
+    const aggregateFn = parseAggregateFn(config.aggregationColumn);
+
+    const data = await generateChartData({ filterSQL, aggregateFn });
     return NextResponse.json(data);
   } catch (error) {
-    console.error('Error processing chart configuration:', error);
-    return NextResponse.json(
-      { error: 'Failed to process request' },
-      { status: 400 }
-    );
+    console.error('Error in POST /api/chart-data:', error);
+    return NextResponse.json({ error: 'Failed to process request' }, { status: 400 });
   }
 }
 
-// Keep the GET method for initial data
 export async function GET() {
   const defaultConfig: ChartConfig = {
-    filters: [],
-    valueColumn: 'revenue',
-    aggregationColumn: 'sum',
+    filters: [
+      {
+        id: 'default',
+        column: 'gender_ceo',
+        value: 'Female'
+      }
+    ],
+    valueColumn: 'amount',
+    aggregationColumn: 'SUM'
   };
 
-  // Log default configuration
-  console.log('=== Default Chart Configuration ===');
-  console.log('Value Column:', defaultConfig.valueColumn);
-  console.log('Aggregation Column:', defaultConfig.aggregationColumn);
-  console.log('Filters:', JSON.stringify(defaultConfig.filters, null, 2));
-  console.log('================================');
+  const filterSQL = buildFilterSQL(config.filters);
+  const aggregateFn = defaultConfig.aggregationColumn.toUpperCase() as 'SUM' | 'AVG';
 
-  const data = generateChartData(defaultConfig);
+  const data = await generateChartData({ filterSQL, aggregateFn });
   return NextResponse.json(data);
-} 
+}
