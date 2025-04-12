@@ -204,8 +204,8 @@ export default function Home() {
 
             <div className="flex-1 flex flex-wrap gap-2">
               {newFilter.values.map((value, index) => (
-                <div key={index} className="flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
-                  <span className="text-sm text-blue-700 font-medium">{value}</span>
+                <div key={index} className="flex items-center gap-1 bg-red-50 px-3 py-1.5 rounded-full border border-red-100">
+                  <span className="text-sm text-red-700 font-medium">{value}</span>
                   <button
                     onClick={() => {
                       setNewFilter({
@@ -213,7 +213,7 @@ export default function Home() {
                         values: newFilter.values.filter((_, i) => i !== index)
                       });
                     }}
-                    className="text-blue-400 hover:text-blue-600 transition-colors duration-150"
+                    className="text-red-400 hover:text-red-600 transition-colors duration-150"
                   >
                     ×
                   </button>
@@ -222,7 +222,7 @@ export default function Home() {
               <input
                 type="text"
                 placeholder="Add value..."
-                className="flex-1 min-w-[200px] px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="flex-1 min-w-[200px] px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                     setNewFilter({
@@ -237,7 +237,7 @@ export default function Home() {
 
             <button
               onClick={handleAddFilter}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium transition-colors duration-150"
+              className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm font-medium transition-colors duration-150"
             >
               Add Filter
             </button>
@@ -246,15 +246,15 @@ export default function Home() {
           {/* Active Filters */}
           <div className="flex flex-wrap gap-2">
             {filters.map((filter, index) => (
-              <div key={index} className="flex items-center gap-2 bg-blue-50 px-4 py-1.5 rounded-full border border-blue-100 group hover:bg-blue-100 transition-colors duration-150">
-                <span className="text-sm text-blue-700">
+              <div key={index} className="flex items-center gap-2 bg-red-50 px-4 py-1.5 rounded-full border border-red-100 group hover:bg-red-100 transition-colors duration-150">
+                <span className="text-sm text-red-700">
                   <span className="font-medium">{chartOptions?.columns.find(c => c.value === filter.column)?.label}</span>
-                  <span className="text-blue-500 mx-1">:</span>
+                  <span className="text-red-500 mx-1">:</span>
                   <span className="font-medium">{filter.values.join(', ')}</span>
                 </span>
                 <button
                   onClick={() => handleRemoveFilter(index)}
-                  className="text-blue-400 hover:text-blue-600 transition-colors duration-150 opacity-100"
+                  className="text-red-400 hover:text-red-600 transition-colors duration-150 opacity-100"
                 >
                   ×
                 </button>
@@ -275,7 +275,7 @@ export default function Home() {
               <select 
                 value={valueColumn}
                 onChange={(e) => setValueColumn(e.target.value)}
-                className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               >
                 {chartOptions?.columns.map((column) => (
                   <option key={column.value} value={column.value}>
@@ -289,7 +289,7 @@ export default function Home() {
               <select 
                 value={aggregationColumn}
                 onChange={(e) => setAggregationColumn(e.target.value)}
-                className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
               >
                 {chartOptions?.aggregationColumns.map((range) => (
                   <option key={range.value} value={range.value}>
@@ -309,7 +309,7 @@ export default function Home() {
                   onClick={() => setChartType(type.value as ChartType)}
                   className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                     chartType === type.value 
-                      ? 'bg-blue-50 text-blue-700 border-2 border-blue-200' 
+                      ? 'bg-red-50 text-red-700 border-2 border-red-200' 
                       : 'bg-gray-50 text-gray-600 border border-gray-200 hover:bg-gray-100'
                   }`}
                 >
@@ -328,8 +328,8 @@ export default function Home() {
               inline-flex items-center justify-center
               text-sm font-medium transition-all duration-200
               ${loading 
-                ? 'bg-blue-500 cursor-not-allowed' 
-                : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2'
+                ? 'bg-red-500 cursor-not-allowed' 
+                : 'bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2'
               } text-white
             `}
           >
