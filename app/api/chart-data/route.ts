@@ -66,23 +66,36 @@ function generateChartData(config: ChartConfig) {
       });
       return filtered;
     });
-  };
+  }
 
-  const data = generateDataset(config.displayField);
-  const filteredData = applyFilters(data);
+  const fetchDatasets = (config: ChartConfig) => {
+    // TODO AXEL: Fetch data from database
 
-  return {
-    labels,
-    datasets: [
+    const data = generateDataset(config.displayField);
+    const data2 = generateDataset(config.displayField);
+    const filteredData = applyFilters(data);
+    const filteredData2 = applyFilters(data2);
+    return {
+      labels: timeRangeLabels[config.timeRange as keyof typeof timeRangeLabels] || timeRangeLabels.monthly,
+      datasets: [
       {
         label: config.displayField.charAt(0).toUpperCase() + config.displayField.slice(1),
         data: filteredData,
         borderColor: 'rgb(59, 130, 246)',
         backgroundColor: 'rgba(59, 130, 246, 0.1)',
         tension: 0.3,
+      },
+      {
+        label: config.displayField.charAt(0).toUpperCase() + config.displayField.slice(1),
+        data: filteredData2,
+        borderColor: 'rgb(246, 59, 234)',
+        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+        tension: 0.3,
       }
-    ],
+    ]}
   };
+
+  return fetchDatasets(config);
 }
 
 export async function POST(request: Request) {
