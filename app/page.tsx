@@ -250,7 +250,6 @@ export default function Home() {
     }
   ];
 
-  if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
   if (!chartData) return <div>No data available</div>;
 
@@ -369,10 +368,6 @@ export default function Home() {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 transition-all duration-200 hover:shadow-md">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-semibold text-gray-800">Chart Configuration</h2>
-            <div className="flex gap-2">
-              <button className="p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200">⬇️</button>
-              <button className="p-2 hover:bg-gray-50 rounded-lg transition-colors duration-200">↗️</button>
-            </div>
           </div>
           
           <div className="grid grid-cols-2 gap-6 mb-6">
@@ -461,7 +456,6 @@ export default function Home() {
                     d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                   />
                 </svg>
-                Updating Chart...
               </>
             ) : (
               'Update Chart'
