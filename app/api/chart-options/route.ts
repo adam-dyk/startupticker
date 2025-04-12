@@ -5,7 +5,6 @@ const pool = new Pool({
   connectionString: 'postgresql://ticker:password@localhost:5432/ticker'
 });
 
-
 export async function GET() {
   console.log('Fetching chart options');
   
@@ -43,21 +42,27 @@ export async function GET() {
       { value: 'pie', label: 'Pie Chart', icon: '🥧' }
     ],
     valueColumns: [
-      { value: 'funds_raised', label: 'Funds Raised' },
-      { value: 'total_monies', label: 'Total Monies' },
+      { value: 'd.amount', label: 'Capital Invested' },
     ],
-    aggregationColumns: [
-      { value: 'company', label: 'Company' },
-      { value: 'county', label: 'County' },
-      { value: 'region', label: 'Region' },
+    aggregationFields: [
+      { value: 'd.amount', label: 'Capital Invested' },
+    ],
+    aggregationFns: [
+      { value: 'SUM', label: 'Sum' },
+      { value: 'AVG', label: 'Average' },
+      { value: 'MAX', label: 'Maximum' },
+      { value: 'MIN', label: 'Minimum' },
+    ],
+    groupByFields: [
+      { value: 'c.industry', label: 'Industry' },
+      { value: 'd.phase', label: 'Phase' },
+      { value: 'c.gender_ceo', label: 'CEO Gender' },
     ]
   };
 
   for (const filter of chartOptions.filterColumns) {
     const result = await pool.query(`SELECT DISTINCT ${filter.value} as column_value FROM swiss.companies WHERE ${filter.value} IS NOT NULL ORDER BY ${filter.value}`);
     filter.options = result.rows.map(row => row.column_value);
-    console.log(filter.value);
-    console.log(filter.options);
   }
 
   return NextResponse.json(chartOptions);

@@ -49,7 +49,9 @@ interface ChartOptions {
   }[];
   chartTypes: { value: string; label: string; icon: string; }[];
   valueColumns: { value: string; label: string; }[];
-  aggregationColumns: { value: string; label: string; }[];
+  aggregationFns: { value: string; label: string; }[];
+  aggregationFields: { value: string; label: string; }[];
+  groupByFields: { value: string; label: string; }[];
 }
 
 export default function Home() {
@@ -57,8 +59,10 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chartType, setChartType] = useState<ChartType>('line');
-  const [filterColumn, setFilterColumn] = useState('title');
-  const [aggregationColumn, setAggregationColumn] = useState('sum');
+  const [filterColumn, setFilterColumn] = useState('d.amount');
+  const [aggregationFn, setAggregationFn] = useState('sum');
+  const [aggregationField, setAggregationField] = useState('d.amount');
+  const [groupByField, setgroupByField] = useState('c.industry');
   const [filters, setFilters] = useState<Filter[]>([]);
   const [newFilter, setNewFilter] = useState<Filter>({
     column: 'title',
@@ -87,7 +91,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchChartData({ filters: [], valueColumn: filterColumn, aggregationColumn });
+    fetchChartData({ filters: [], valueColumn: filterColumn, aggregationFn, aggregationField, groupByField });
   }, []);
 
   useEffect(() => {
@@ -102,8 +106,18 @@ export default function Home() {
         if (options.filterColumns.length > 0) {
           setFilterColumn(options.filterColumns[0].value);
         }
-        if (options.aggregationColumns.length > 0) {
-          setAggregationColumn(options.aggregationColumns[0].value);
+
+        // Set initial values based on first available options
+        if (options.aggregationFns.length > 0) {
+          setAggregationFn(options.aggregationFns[0].value);
+        }
+        // Set initial values based on first available options
+        if (options.aggregationFields.length > 0) {
+          setAggregationField(options.aggregationFields[0].value);
+        }
+        // Set initial values based on first available options
+        if (options.groupByFields.length > 0) {
+          setgroupByField(options.groupByFields[0].value);
         }
       } catch (err) {
         console.error('Failed to fetch chart options:', err);
@@ -113,13 +127,14 @@ export default function Home() {
   }, []);
 
   const handleUpdateChart = () => {
-    fetchChartData({ filters, valueColumn: filterColumn, aggregationColumn });
+    fetchChartData({ filters, valueColumn: filterColumn, aggregationFn: aggregationFn, aggregationField: aggregationField, groupByField });
   };
 
   const handleAddFilter = () => {
     if (newFilter.values.length === 0) return;
     setFilters([...filters, newFilter]);
     setNewFilter({ column: 'revenue', values: [] });
+    fetchChartData({ filters, valueColumn, aggregationFn: aggregationFn, aggregationField: aggregationField, groupByField });
   };
 
   const handleRemoveFilter = (index: number) => {
@@ -341,13 +356,13 @@ export default function Home() {
 
           <div className="grid grid-cols-2 gap-6 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Display Field</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Aggregate Field</label>
               <select
-                value={filterColumn}
-                onChange={(e) => setFilterColumn(e.target.value)}
+                value={aggregationField}
+                onChange={(e) => setAggregationField(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-sm text-sm text-gray-700"
               >
-                {chartOptions?.valueColumns.map((column) => (
+                {chartOptions?.aggregationFields.map((column) => (
                   <option key={column.value} value={column.value}>
                     {column.label}
                   </option>
@@ -357,17 +372,28 @@ export default function Home() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Aggregate By</label>
               <select
-                value={aggregationColumn}
-                onChange={(e) => setAggregationColumn(e.target.value)}
+                value={aggregationFn}
+                onChange={(e) => setAggregationFn(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-sm text-sm text-gray-700"
               >
-                {chartOptions?.aggregationColumns.map((range) => (
+                {chartOptions?.aggregationFns.map((range) => (
+                  <option key={range.value} value={range.value}>{range.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Group By</label>
+              <select
+                value={groupByField}
+                onChange={(e) => setGroupByField(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-sm text-sm text-gray-700"
+              >
+                {chartOptions?.groupByFields.map((range) => (
                   <option key={range.value} value={range.value}>{range.label}</option>
                 ))}
               </select>
             </div>
           </div>
-
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-1">Chart Type</label>
             <div className="flex gap-3">

@@ -13,8 +13,9 @@ export interface Filter {
 
 export interface ChartConfig {
   filters: Filter[];
-  valueColumn: string;
-  aggregationColumn: string;
+  aggregateField: string;
+  aggregateFn: string;
+  groupByField: string;
 }
 
 interface FilterParams {
@@ -49,6 +50,20 @@ function buildFilterSQL(filters: Filter[]): string {
 
   return filterSQL.trim();
 }
+// === Helpers ===
+function buildValueString(filters: Filter[]): string {
+  if (!filters || filters.length === 0) return '';
+
+  let filterString = '';
+
+  filters.forEach((filter, index) => {
+    filterString += `${filter.values
+      .map(v => `'${v.replace(/'/g, "''")}'`)
+      .join(', ')})`;
+  });
+
+  return filterString.trim();
+}
 
 function parseAggregateFn(fn: string | undefined): 'SUM' | 'AVG' {
   const upper = (fn || '').toUpperCase();
@@ -63,15 +78,22 @@ function getRandomColor(): string {
 }
 
 export async function generateChartData({
+  filterValue,
   filterSQL,
-  aggregateFn
+  aggregateFn,
+  aggregateField,
+  groupByField
 }: FilterParams): Promise<ChartData> {
-  const rawSql = readFileSync('./queries/invested_capital_by_sector.sql', 'utf-8');
+  // const rawSql = readFileSync('./queries/invested_capital_by_sector.sql', 'utf-8');
+  const rawSql = readFileSync('./queries/general.sql', 'utf-8');
   const finalSql = rawSql
-    .replace('{{COMPANIES_FILTER}}', filterSQL)
-    .replace('{{AGGREGATE_FUNCTION}}', aggregateFn);
+    .replaceAll('{{FILTER_VAULE}}', filterValue)
+    .replaceAll('{{COMPANIES_FILTER}}', filterSQL)
+    .replaceAll('{{AGGREGATE_FUNCTION}}', aggregateFn)
+    .replaceAll('{{AGGREGATE_FIELD}}', aggregateField)
+    .replaceAll('{{GROUP_BY_FIELD}}', groupByField);
 
-    console.log(finalSql);
+  console.log(finalSql);
 
   const result = await pool.query(finalSql);
 
@@ -112,9 +134,12 @@ export async function POST(request: Request) {
     console.log(body);
 
     const filterSQL = buildFilterSQL(body.filters);
-    const aggregateFn = parseAggregateFn(body.aggregationColumn);
+    const aggregateFn = parseAggregateFn(body.aggregateFn);
+    const filterValue = buildValueString(body.filters);
+    const aggregateField = body.aggregationField
+    const groupByField = body.groupByField.toString()
 
-    const data = await generateChartData({ filterSQL, aggregateFn });
+    const data = await generateChartData({ filterValue, filterSQL, aggregateFn, aggregateField, groupByField });
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error in POST /api/chart-data:', error);
@@ -130,13 +155,17 @@ export async function GET() {
         values: ['Female']
       }
     ],
-    valueColumn: 'amount',
-    aggregationColumn: 'SUM'
+    aggregateField: 'd.amount',
+    aggregateFn: 'SUM',
+    groupByField: 'c.industry'
   };
 
   const filterSQL = buildFilterSQL(config.filters);
-  const aggregateFn = defaultConfig.aggregationColumn.toUpperCase() as 'SUM' | 'AVG';
+  const filterValue = buildValueString(config.filters);
+  const aggregateFn = defaultConfig.aggregateFn.toUpperCase() as 'SUM' | 'AVG' | 'MAX' | 'MIN';
+  const groupByField = config.groupByField.toString() 
+  const aggregateField = config.aggregationField
 
-  const data = await generateChartData({ filterSQL, aggregateFn });
+  const data = await generateChartData({ filterValue, filterSQL, aggregateFn, aggregateField, groupByField });
   return NextResponse.json(data);
 }
