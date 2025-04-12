@@ -1,18 +1,16 @@
 import { NextResponse } from 'next/server';
 
-interface Filter {
+export interface Filter {
   id: string;
   column: string;
   operator: string;
   value: string;
 }
 
-interface ChartConfig {
+export interface ChartConfig {
   filters: Filter[];
-  displayField: string;
-  timeRange: string;
-  aggregationMethod: string;
-  chartType: string;
+  valueColumn: string;
+  aggregationColumn: string;
 }
 
 // Mock data generator based on configuration
@@ -71,10 +69,8 @@ export async function POST(request: Request) {
     
     // Log detailed chart configuration
     console.log('=== Chart Configuration ===');
-    console.log('Display Field:', config.displayField);
-    console.log('Time Range:', config.timeRange);
-    console.log('Aggregation Method:', config.aggregationMethod);
-    console.log('Chart Type:', config.chartType);
+    console.log('Value Column:', config.valueColumn);
+    console.log('Aggregation Column:', config.aggregationColumn);
     console.log('Filters:', JSON.stringify(config.filters, null, 2));
     console.log('========================');
 
@@ -93,18 +89,14 @@ export async function POST(request: Request) {
 export async function GET() {
   const defaultConfig: ChartConfig = {
     filters: [],
-    displayField: 'revenue',
-    timeRange: 'monthly',
-    aggregationMethod: 'sum',
-    chartType: 'line',
+    valueColumn: 'revenue',
+    aggregationColumn: 'sum',
   };
 
   // Log default configuration
   console.log('=== Default Chart Configuration ===');
-  console.log('Display Field:', defaultConfig.displayField);
-  console.log('Time Range:', defaultConfig.timeRange);
-  console.log('Aggregation Method:', defaultConfig.aggregationMethod);
-  console.log('Chart Type:', defaultConfig.chartType);
+  console.log('Value Column:', defaultConfig.valueColumn);
+  console.log('Aggregation Column:', defaultConfig.aggregationColumn);
   console.log('Filters:', JSON.stringify(defaultConfig.filters, null, 2));
   console.log('================================');
 

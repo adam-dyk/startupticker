@@ -14,6 +14,7 @@ import {
   Legend,
 } from 'chart.js';
 import { useState, useEffect } from 'react';
+import { ChartConfig, Filter } from './api/chart-data/route';
 
 ChartJS.register(
   CategoryScale,
@@ -47,13 +48,6 @@ interface MetricCard {
   icon: string;
 }
 
-interface Filter {
-  id: string;
-  column: string;
-  operator: string;
-  value: string;
-}
-
 interface ChartOptions {
   columns: {
     value: string;
@@ -71,36 +65,14 @@ interface ChartOptions {
   aggregationMethods: { value: string; label: string; }[];
 }
 
-const COLUMNS = [
-  { value: 'revenue', label: 'Revenue' },
-  { value: 'industry', label: 'Industry' },
-  { value: 'users', label: 'Active Users' },
-  { value: 'growth', label: 'Growth Rate' },
-];
-
-const OPERATORS = [
-  { value: '>', label: 'Greater than' },
-  { value: '<', label: 'Less than' },
-  { value: '=', label: 'Equals' },
-  { value: '!=', label: 'Not equals' },
-];
-
-interface ChartConfig {
-  filters: Filter[];
-  displayField: string;
-  timeRange: string;
-  aggregationMethod: string;
-  chartType: ChartType;
-}
-
 export default function Home() {
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chartType, setChartType] = useState<ChartType>('line');
-  const [displayField, setDisplayField] = useState('revenue');
+  const [valueColumn, setValueColumn] = useState('revenue');
   const [timeRange, setTimeRange] = useState('monthly');
-  const [aggregationMethod, setAggregationMethod] = useState('sum');
+  const [aggregationColumn, setAggregationColumn] = useState('sum');
   const [filters, setFilters] = useState<Filter[]>([]);
   const [newFilter, setNewFilter] = useState<Filter>({
     id: '',
@@ -138,10 +110,8 @@ export default function Home() {
     // Initial data fetch
     fetchChartData({
       filters: [],
-      displayField,
-      timeRange,
-      aggregationMethod,
-      chartType,
+      valueColumn,
+      aggregationColumn
     });
   }, []);
 
@@ -158,13 +128,13 @@ export default function Home() {
         
         // Set initial values based on first available options
         if (options.columns.length > 0) {
-          setDisplayField(options.columns[0].value);
+          setValueColumn(options.columns[0].value);
         }
         if (options.timeRanges.length > 0) {
           setTimeRange(options.timeRanges[0].value);
         }
         if (options.aggregationMethods.length > 0) {
-          setAggregationMethod(options.aggregationMethods[0].value);
+          setAggregationColumn(options.aggregationMethods[0].value);
         }
       } catch (err) {
         console.error('Failed to fetch chart options:', err);
@@ -177,11 +147,8 @@ export default function Home() {
   const handleUpdateChart = () => {
     fetchChartData({
       filters,
-      displayField,
-      timeRange,
-      aggregationMethod,
-      chartType,
-    });
+      valueColumn,
+      aggregationColumn,    });
   };
 
   const handleAddFilter = () => {
@@ -389,8 +356,8 @@ export default function Home() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Display Field</label>
               <select 
-                value={displayField}
-                onChange={(e) => setDisplayField(e.target.value)}
+                value={valueColumn}
+                onChange={(e) => setValueColumn(e.target.value)}
                 className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {chartOptions?.columns.map((column) => (
