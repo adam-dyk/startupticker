@@ -36,8 +36,18 @@ interface ChartData {
 // === Helpers ===
 function buildFilterSQL(filters: Filter[]): string {
   if (!filters || filters.length === 0) return '';
-  const { column, values } = filters[0];
-  return `WHERE ${column} in (${values.map(v => `'${v.replace(/'/g, "''")}'`).join(', ')})`;
+
+  let filterSQL = '';
+
+  filters.forEach((filter, index) => {
+    const clause = `${filter.column} IN (${filter.values
+      .map(v => `'${v.replace(/'/g, "''")}'`)
+      .join(', ')})`;
+
+    filterSQL += index === 0 ? `WHERE ${clause} ` : `AND ${clause} `;
+  });
+
+  return filterSQL.trim();
 }
 
 function parseAggregateFn(fn: string | undefined): 'SUM' | 'AVG' {
