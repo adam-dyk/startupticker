@@ -56,6 +56,8 @@ export async function GET() {
   for (const filter of chartOptions.filterColumns) {
     const result = await pool.query(`SELECT DISTINCT ${filter.value} as column_value FROM swiss.companies WHERE ${filter.value} IS NOT NULL ORDER BY ${filter.value}`);
     filter.options = result.rows.map(row => row.column_value);
+    console.log(filter.value);
+    console.log(filter.options);
   }
 
   return NextResponse.json(chartOptions);

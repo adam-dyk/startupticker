@@ -249,44 +249,43 @@ export default function Home() {
           </div>
 
           {/* Filter Builder */}
-          <div className="flex flex-wrap gap-3 mb-4">
+          <div className="flex flex-wrap gap-3 mb-6">
             <select
               value={newFilter.column}
-              onChange={(e) => setNewFilter({ ...newFilter, column: e.target.value })}
-              className="px-4 py-2 border border-gray-300 rounded-sm text-sm text-gray-700"
+              onChange={(e) => setNewFilter({ ...newFilter, column: e.target.value, values: [] })}
+              className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm"
             >
               {chartOptions?.filterColumns.map((column) => (
                 <option key={column.value} value={column.value}>
                   {column.label}
                 </option>
-
               ))}
             </select>
 
-            <div className="flex-1 flex flex-wrap gap-2">
-              {newFilter.values.map((value, index) => (
-                <div key={index} className="flex items-center gap-1 bg-red-50 px-3 py-1.5 rounded-full border border-red-100">
-                  <span className="text-sm text-red-700 font-medium">{value}</span>
-                  <button
-                    onClick={() => setNewFilter({ ...newFilter, values: newFilter.values.filter((_, i) => i !== index) })}
-                    className="text-red-400 hover:text-red-600"
-                  >×</button>
-                </div>
-              ))}
-              <input
-                type="text"
-                placeholder="Add value..."
-                className="flex-1 min-w-[200px] px-4 py-2 border border-gray-300 rounded-sm text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-red-500"
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                    setNewFilter({ ...newFilter, values: [...newFilter.values, e.currentTarget.value.trim()] });
-                    e.currentTarget.value = '';
-                  }
-                }}
-              />
-            </div>
+            <select
+              multiple
+              value={newFilter.values}
+              onChange={(e) => {
+                const values = Array.from(e.target.selectedOptions, option => option.value);
+                setNewFilter({ ...newFilter, values });
+              }}
+              className="flex-1 min-w-[200px] px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm h-[100px]"
+            >
+              {chartOptions?.filterColumns
+                .find(c => c.value === newFilter.column)
+                ?.options.map(option => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+            </select>
 
-            <button onClick={handleAddFilter} className="px-4 py-2 bg-red-600 text-white text-sm rounded-sm hover:bg-red-700 transition">Add Filter</button>
+            <button
+              onClick={handleAddFilter}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium transition-colors duration-150"
+            >
+              Add Filter
+            </button>
           </div>
 
           {/* Active Filters */}
