@@ -249,43 +249,75 @@ export default function Home() {
           </div>
 
           {/* Filter Builder */}
-          <div className="flex flex-wrap gap-3 mb-6">
-            <select
-              value={newFilter.column}
-              onChange={(e) => setNewFilter({ ...newFilter, column: e.target.value, values: [] })}
-              className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm"
-            >
-              {chartOptions?.filterColumns.map((column) => (
-                <option key={column.value} value={column.value}>
-                  {column.label}
-                </option>
-              ))}
-            </select>
-
-            <select
-              multiple
-              value={newFilter.values}
-              onChange={(e) => {
-                const values = Array.from(e.target.selectedOptions, option => option.value);
-                setNewFilter({ ...newFilter, values });
-              }}
-              className="flex-1 min-w-[200px] px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm h-[100px]"
-            >
-              {chartOptions?.filterColumns
-                .find(c => c.value === newFilter.column)
-                ?.options.map(option => (
-                  <option key={option} value={option}>
-                    {option}
+          <div className="flex flex-col gap-3 mb-6">
+            <div className="flex gap-3">
+              <select
+                value={newFilter.column}
+                onChange={(e) => setNewFilter({ ...newFilter, column: e.target.value, values: [] })}
+                className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm"
+              >
+                {chartOptions?.filterColumns.map((column) => (
+                  <option key={column.value} value={column.value}>
+                    {column.label}
                   </option>
                 ))}
-            </select>
+              </select>
 
-            <button
-              onClick={handleAddFilter}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium transition-colors duration-150"
-            >
-              Add Filter
-            </button>
+              <select
+                value={newFilter.values[newFilter.values.length - 1] || ''}
+                onChange={(e) => {
+                  if (e.target.value) {
+                    setNewFilter({
+                      ...newFilter,
+                      values: [...newFilter.values, e.target.value]
+                    });
+                  }
+                }}
+                className="flex-1 min-w-[200px] px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm"
+              >
+                <option value="">Select a value...</option>
+                {chartOptions?.filterColumns
+                  .find(c => c.value === newFilter.column)
+                  ?.options
+                  .filter(option => !newFilter.values.includes(option))
+                  .map(option => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+              </select>
+
+              <button
+                onClick={handleAddFilter}
+                disabled={newFilter.values.length === 0}
+                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-150 ${
+                  newFilter.values.length === 0
+                    ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    : 'bg-blue-500 text-white hover:bg-blue-600'
+                }`}
+              >
+                Add Filter
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {newFilter.values.map((value, index) => (
+                <div key={index} className="flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+                  <span className="text-sm text-blue-700 font-medium">{value}</span>
+                  <button
+                    onClick={() => {
+                      setNewFilter({
+                        ...newFilter,
+                        values: newFilter.values.filter((_, i) => i !== index)
+                      });
+                    }}
+                    className="text-blue-400 hover:text-blue-600 transition-colors duration-150"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Active Filters */}
