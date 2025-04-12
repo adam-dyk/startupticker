@@ -1,10 +1,8 @@
 import { NextResponse } from 'next/server';
 
 export interface Filter {
-  id: string;
   column: string;
-  operator: string;
-  value: string;
+  values: string[];
 }
 
 export interface ChartConfig {

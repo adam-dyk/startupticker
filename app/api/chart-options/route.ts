@@ -4,33 +4,19 @@ const chartOptions = {
   columns: [
     { 
       value: 'revenue',
-      label: 'Revenue',
-      type: 'number',
-      prefix: '$',
-      operators: ['>', '<', '=', '!='],
-      aggregationMethods: ['sum', 'average', 'max', 'min']
+      label: 'Revenue'
     },
     { 
       value: 'industry',
       label: 'Industry',
-      type: 'string',
-      operators: ['=', '!=', 'contains', 'starts_with'],
-      values: ['Technology', 'Healthcare', 'Finance', 'Retail', 'Manufacturing']
     },
     { 
       value: 'users',
       label: 'Active Users',
-      type: 'number',
-      operators: ['>', '<', '=', '!='],
-      aggregationMethods: ['sum', 'average', 'max', 'min']
     },
     { 
       value: 'growth',
-      label: 'Growth Rate',
-      type: 'number',
-      suffix: '%',
-      operators: ['>', '<', '=', '!='],
-      aggregationMethods: ['average', 'max', 'min']
+      label: 'Growth Rate'
     }
   ],
   chartTypes: [
@@ -38,19 +24,10 @@ const chartOptions = {
     { value: 'bar', label: 'Bar Chart', icon: '📊' },
     { value: 'pie', label: 'Pie Chart', icon: '🥧' }
   ],
-  operators: [
-    { value: '>', label: 'Greater than' },
-    { value: '<', label: 'Less than' },
-    { value: '=', label: 'Equals' },
-    { value: '!=', label: 'Not equals' },
-    { value: 'contains', label: 'Contains' },
-    { value: 'starts_with', label: 'Starts with' }
-  ],
   aggregationColumns: [
-    { value: 'sum', label: 'Sum' },
-    { value: 'average', label: 'Average' },
-    { value: 'max', label: 'Maximum' },
-    { value: 'min', label: 'Minimum' }
+    { value: 'company', label: 'Company' },
+    { value: 'county', label: 'County' },
+    { value: 'region', label: 'Region' },
   ]
 };
 

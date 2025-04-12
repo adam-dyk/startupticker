@@ -45,15 +45,8 @@ interface ChartOptions {
   columns: {
     value: string;
     label: string;
-    type: string;
-    prefix?: string;
-    suffix?: string;
-    operators: string[];
-    aggregationMethods?: string[];
-    values?: string[];
   }[];
   chartTypes: { value: string; label: string; icon: string; }[];
-  operators: { value: string; label: string; }[];
   aggregationColumns: { value: string; label: string; }[];
 }
 
@@ -66,10 +59,8 @@ export default function Home() {
   const [aggregationColumn, setAggregationColumn] = useState('sum');
   const [filters, setFilters] = useState<Filter[]>([]);
   const [newFilter, setNewFilter] = useState<Filter>({
-    id: '',
     column: 'revenue',
-    operator: '>',
-    value: '',
+    values: [],
   });
   const [chartOptions, setChartOptions] = useState<ChartOptions | null>(null);
 
@@ -140,35 +131,24 @@ export default function Home() {
   };
 
   const handleAddFilter = () => {
-    if (!newFilter.value.trim()) return;
+    if (newFilter.values.length === 0) return;
     
-    setFilters([
-      ...filters,
-      {
-        ...newFilter,
-        id: Math.random().toString(36).substr(2, 9),
-      },
-    ]);
-    
+    setFilters([...filters, newFilter]);
     setNewFilter({
-      id: '',
       column: 'revenue',
-      operator: '>',
-      value: '',
+      values: [],
     });
   };
 
-  const handleRemoveFilter = (id: string) => {
-    setFilters(filters.filter(filter => filter.id !== id));
+  const handleRemoveFilter = (index: number) => {
+    setFilters(filters.filter((_, i) => i !== index));
   };
 
   const handleResetFilters = () => {
     setFilters([]);
     setNewFilter({
-      id: '',
       column: 'revenue',
-      operator: '>',
-      value: '',
+      values: [],
     });
   };
 
@@ -206,12 +186,12 @@ export default function Home() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 transition-all duration-200 hover:shadow-md">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-lg font-semibold text-gray-800">Filters</h2>
             <button 
               onClick={handleResetFilters}
-              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 text-sm font-medium transition-colors duration-200"
+              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 text-sm font-medium"
             >
               Reset All
             </button>
@@ -221,15 +201,8 @@ export default function Home() {
           <div className="flex flex-wrap gap-3 mb-6">
             <select
               value={newFilter.column}
-              onChange={(e) => {
-                const column = chartOptions?.columns.find(c => c.value === e.target.value);
-                setNewFilter({
-                  ...newFilter,
-                  column: e.target.value,
-                  operator: column?.operators[0] || '>'
-                });
-              }}
-              className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              onChange={(e) => setNewFilter({ ...newFilter, column: e.target.value })}
+              className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm"
             >
               {chartOptions?.columns.map((column) => (
                 <option key={column.value} value={column.value}>
@@ -238,73 +211,57 @@ export default function Home() {
               ))}
             </select>
 
-            <select
-              value={newFilter.operator}
-              onChange={(e) => setNewFilter({ ...newFilter, operator: e.target.value })}
-              className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {chartOptions?.columns
-                .find(c => c.value === newFilter.column)
-                ?.operators.map(op => {
-                  const operator = chartOptions.operators.find(o => o.value === op);
-                  return (
-                    <option key={op} value={op}>
-                      {operator?.label || op}
-                    </option>
-                  );
-                })}
-            </select>
-
-            {chartOptions?.columns.find(c => c.value === newFilter.column)?.values ? (
-              <select
-                value={newFilter.value}
-                onChange={(e) => setNewFilter({ ...newFilter, value: e.target.value })}
-                className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="">Select a value</option>
-                {chartOptions.columns
-                  .find(c => c.value === newFilter.column)
-                  ?.values?.map(value => (
-                    <option key={value} value={value}>
-                      {value}
-                    </option>
-                  ))}
-              </select>
-            ) : (
+            <div className="flex-1 flex flex-wrap gap-2">
+              {newFilter.values.map((value, index) => (
+                <div key={index} className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full">
+                  <span className="text-sm text-gray-700">{value}</span>
+                  <button
+                    onClick={() => {
+                      setNewFilter({
+                        ...newFilter,
+                        values: newFilter.values.filter((_, i) => i !== index)
+                      });
+                    }}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
               <input
                 type="text"
-                value={newFilter.value}
-                onChange={(e) => setNewFilter({ ...newFilter, value: e.target.value })}
-                placeholder="Value"
-                className="flex-1 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Add value..."
+                className="flex-1 min-w-[200px] px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                    setNewFilter({
+                      ...newFilter,
+                      values: [...newFilter.values, e.currentTarget.value.trim()]
+                    });
+                    e.currentTarget.value = '';
+                  }
+                }}
               />
-            )}
+            </div>
 
             <button
               onClick={handleAddFilter}
-              className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium"
             >
               Add Filter
             </button>
           </div>
 
           {/* Active Filters */}
-          <div className="flex gap-2 flex-wrap">
-            {filters.map((filter) => (
-              <div
-                key={filter.id}
-                className="group px-4 py-2 bg-blue-50 text-blue-700 rounded-full text-sm flex items-center gap-2 transition-all duration-200 hover:bg-blue-100"
-              >
-                <span className="font-medium">
-                  {chartOptions?.columns.find(c => c.value === filter.column)?.label}{' '}
-                  <span className="text-blue-500">
-                    {chartOptions?.operators.find(o => o.value === filter.operator)?.label}{' '}
-                  </span>
-                  {filter.value}
+          <div className="flex flex-wrap gap-2">
+            {filters.map((filter, index) => (
+              <div key={index} className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
+                <span className="text-sm text-gray-700">
+                  {chartOptions?.columns.find(c => c.value === filter.column)?.label}: {filter.values.join(', ')}
                 </span>
                 <button
-                  onClick={() => handleRemoveFilter(filter.id)}
-                  className="text-blue-400 hover:text-blue-600 transition-colors duration-200"
+                  onClick={() => handleRemoveFilter(index)}
+                  className="text-gray-500 hover:text-gray-700"
                 >
                   ×
                 </button>
@@ -416,6 +373,7 @@ export default function Home() {
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 min-h-[400px] transition-all duration-200 hover:shadow-md">
           {renderChart()}
         </div>
+
       </main>
     </div>
   );
