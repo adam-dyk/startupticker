@@ -3,20 +3,24 @@ import { NextResponse } from 'next/server';
 const chartOptions = {
   columns: [
     { 
-      value: 'revenue',
-      label: 'Revenue'
+      value: 'title',
+      label: 'Company Name'
     },
     { 
+      value: 'canton',
+      label: 'Canton',
+    },
+    { 
+      value: 'city',
+      label: 'City',
+    },
+    { 
+      value: 'gender_ceo',
+      label: 'Gender of CEO'
+    },
+    {
       value: 'industry',
-      label: 'Industry',
-    },
-    { 
-      value: 'users',
-      label: 'Active Users',
-    },
-    { 
-      value: 'growth',
-      label: 'Growth Rate'
+      label: 'Sector'
     }
   ],
   chartTypes: [
