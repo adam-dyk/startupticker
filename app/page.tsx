@@ -213,8 +213,8 @@ export default function Home() {
 
             <div className="flex-1 flex flex-wrap gap-2">
               {newFilter.values.map((value, index) => (
-                <div key={index} className="flex items-center gap-1 bg-gray-100 px-3 py-1 rounded-full">
-                  <span className="text-sm text-gray-700">{value}</span>
+                <div key={index} className="flex items-center gap-1 bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">
+                  <span className="text-sm text-blue-700 font-medium">{value}</span>
                   <button
                     onClick={() => {
                       setNewFilter({
@@ -222,7 +222,7 @@ export default function Home() {
                         values: newFilter.values.filter((_, i) => i !== index)
                       });
                     }}
-                    className="text-gray-500 hover:text-gray-700"
+                    className="text-blue-400 hover:text-blue-600 transition-colors duration-150"
                   >
                     ×
                   </button>
@@ -231,7 +231,7 @@ export default function Home() {
               <input
                 type="text"
                 placeholder="Add value..."
-                className="flex-1 min-w-[200px] px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm"
+                className="flex-1 min-w-[200px] px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' && e.currentTarget.value.trim()) {
                     setNewFilter({
@@ -246,7 +246,7 @@ export default function Home() {
 
             <button
               onClick={handleAddFilter}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm font-medium transition-colors duration-150"
             >
               Add Filter
             </button>
@@ -255,13 +255,15 @@ export default function Home() {
           {/* Active Filters */}
           <div className="flex flex-wrap gap-2">
             {filters.map((filter, index) => (
-              <div key={index} className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
-                <span className="text-sm text-gray-700">
-                  {chartOptions?.columns.find(c => c.value === filter.column)?.label}: {filter.values.join(', ')}
+              <div key={index} className="flex items-center gap-2 bg-blue-50 px-4 py-1.5 rounded-full border border-blue-100 group hover:bg-blue-100 transition-colors duration-150">
+                <span className="text-sm text-blue-700">
+                  <span className="font-medium">{chartOptions?.columns.find(c => c.value === filter.column)?.label}</span>
+                  <span className="text-blue-500 mx-1">:</span>
+                  <span className="font-medium">{filter.values.join(', ')}</span>
                 </span>
                 <button
                   onClick={() => handleRemoveFilter(index)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-blue-400 hover:text-blue-600 transition-colors duration-150 opacity-100"
                 >
                   ×
                 </button>
