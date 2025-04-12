@@ -62,7 +62,7 @@ export default function Home() {
   const [filterColumn, setFilterColumn] = useState('d.amount');
   const [aggregationFn, setAggregationFn] = useState('sum');
   const [aggregationField, setAggregationField] = useState('d.amount');
-  const [groupByField, setgroupByField] = useState('c.industry');
+  const [groupByField, setGroupByField] = useState('c.industry');
   const [filters, setFilters] = useState<Filter[]>([]);
   const [newFilter, setNewFilter] = useState<Filter>({
     column: 'title',
@@ -91,7 +91,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchChartData({ filters: [], valueColumn: filterColumn, aggregationFn, aggregationField, groupByField });
+    fetchChartData({ filters: [], valueColumn: filterColumn, aggregationFn: aggregationFn, aggregationField, groupByField });
   }, []);
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function Home() {
         }
         // Set initial values based on first available options
         if (options.groupByFields.length > 0) {
-          setgroupByField(options.groupByFields[0].value);
+          setGroupByField(options.groupByFields[0].value);
         }
       } catch (err) {
         console.error('Failed to fetch chart options:', err);

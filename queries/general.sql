@@ -4,12 +4,12 @@ WITH selected_startups AS (
 )
 SELECT
   EXTRACT(YEAR FROM d.date_of_the_funding_round) AS year,
-  {{GROUP_BY_FIELD}},
+  {{GROUP_BY_FIELD}} AS group_by_label,
   CASE
-    WHEN s.title IS NOT NULL THEN 'Selected {{FILTER_VAULE}}'
-    ELSE 'All {{FILTER_VAULE}}'
+    WHEN s.title IS NOT NULL THEN '{{FILTER_VAULE}}'
+    ELSE 'Other'
   END AS group_label,
-  ROUND({{AGGREGATE_FUNCTION}}({{AGGREGATE_FIELD}})::numeric, 3) AS total_invested_chf
+  ROUND({{AGGREGATE_FUNCTION}}({{AGGREGATE_FIELD}})::numeric, 3) AS aggregate_label
 FROM swiss.deals d
 JOIN swiss.companies c ON LOWER(TRIM(d.company)) = LOWER(TRIM(c.title))
 LEFT JOIN selected_startups s ON c.title = s.title
