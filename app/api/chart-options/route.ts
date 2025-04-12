@@ -33,11 +33,6 @@ const chartOptions = {
       aggregationMethods: ['average', 'max', 'min']
     }
   ],
-  timeRanges: [
-    { value: 'daily', label: 'Daily' },
-    { value: 'monthly', label: 'Monthly' },
-    { value: 'yearly', label: 'Yearly' }
-  ],
   chartTypes: [
     { value: 'line', label: 'Line Chart', icon: '📈' },
     { value: 'bar', label: 'Bar Chart', icon: '📊' },
@@ -51,7 +46,7 @@ const chartOptions = {
     { value: 'contains', label: 'Contains' },
     { value: 'starts_with', label: 'Starts with' }
   ],
-  aggregationMethods: [
+  aggregationColumns: [
     { value: 'sum', label: 'Sum' },
     { value: 'average', label: 'Average' },
     { value: 'max', label: 'Maximum' },

@@ -41,13 +41,6 @@ interface ChartData {
 
 type ChartType = 'line' | 'bar' | 'pie';
 
-interface MetricCard {
-  title: string;
-  value: string;
-  change: string;
-  icon: string;
-}
-
 interface ChartOptions {
   columns: {
     value: string;
@@ -59,10 +52,9 @@ interface ChartOptions {
     aggregationMethods?: string[];
     values?: string[];
   }[];
-  timeRanges: { value: string; label: string; }[];
   chartTypes: { value: string; label: string; icon: string; }[];
   operators: { value: string; label: string; }[];
-  aggregationMethods: { value: string; label: string; }[];
+  aggregationColumns: { value: string; label: string; }[];
 }
 
 export default function Home() {
@@ -71,7 +63,6 @@ export default function Home() {
   const [error, setError] = useState<string | null>(null);
   const [chartType, setChartType] = useState<ChartType>('line');
   const [valueColumn, setValueColumn] = useState('revenue');
-  const [timeRange, setTimeRange] = useState('monthly');
   const [aggregationColumn, setAggregationColumn] = useState('sum');
   const [filters, setFilters] = useState<Filter[]>([]);
   const [newFilter, setNewFilter] = useState<Filter>({
@@ -130,11 +121,8 @@ export default function Home() {
         if (options.columns.length > 0) {
           setValueColumn(options.columns[0].value);
         }
-        if (options.timeRanges.length > 0) {
-          setTimeRange(options.timeRanges[0].value);
-        }
-        if (options.aggregationMethods.length > 0) {
-          setAggregationColumn(options.aggregationMethods[0].value);
+        if (options.aggregationColumns.length > 0) {
+          setAggregationColumn(options.aggregationColumns[0].value);
         }
       } catch (err) {
         console.error('Failed to fetch chart options:', err);
@@ -195,27 +183,6 @@ export default function Home() {
 
     return <ChartComponent data={chartData} />;
   };
-
-  const metrics: MetricCard[] = [
-    {
-      title: 'Total Revenue',
-      value: '$1.2M',
-      change: '+12.5% from last month',
-      icon: '$'
-    },
-    {
-      title: 'Active Users',
-      value: '45,678',
-      change: '+8.3% from last month',
-      icon: '👥'
-    },
-    {
-      title: 'Growth Rate',
-      value: '23.4%',
-      change: '+2.1% from last month',
-      icon: '📈'
-    }
-  ];
 
   if (error) return <div>Error: {error}</div>;
   if (!chartData) return <div>No data available</div>;
@@ -370,11 +337,11 @@ export default function Home() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Aggregate By</label>
               <select 
-                value={timeRange}
-                onChange={(e) => setTimeRange(e.target.value)}
+                value={aggregationColumn}
+                onChange={(e) => setAggregationColumn(e.target.value)}
                 className="w-full px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                {chartOptions?.timeRanges.map((range) => (
+                {chartOptions?.aggregationColumns.map((range) => (
                   <option key={range.value} value={range.value}>
                     {range.label}
                   </option>
@@ -448,20 +415,6 @@ export default function Home() {
         {/* Chart Area */}
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mb-6 min-h-[400px] transition-all duration-200 hover:shadow-md">
           {renderChart()}
-        </div>
-
-        {/* Metrics */}
-        <div className="grid grid-cols-3 gap-6">
-          {metrics.map((metric, index) => (
-            <div key={index} className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 transition-all duration-200 hover:shadow-md">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-gray-600 font-medium">{metric.title}</span>
-                <span className="text-2xl bg-blue-50 text-blue-600 p-2 rounded-lg">{metric.icon}</span>
-              </div>
-              <div className="text-2xl font-bold text-gray-800 mb-2">{metric.value}</div>
-              <div className="text-sm text-green-600 font-medium">{metric.change}</div>
-            </div>
-          ))}
         </div>
       </main>
     </div>
