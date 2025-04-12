@@ -131,10 +131,101 @@ export default function Home() {
     setNewFilter({ column: 'revenue', values: [] });
   };
 
+  const chartOptionsConfig = {
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: 'Capital Invested Over Time', // ← your chart title
+        font: {
+          size: 18,
+          weight: 'bold',
+        },
+        color: '#111827', // Tailwind's gray-900
+        padding: {
+          top: 10,
+          bottom: 20,
+        },
+      },
+      legend: {
+        position: 'right',
+        labels: {
+          color: '#374151', // Tailwind's gray-700
+          font: {
+            size: 12,
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Year',
+          font: {
+            size: 14,
+            weight: 'bold',
+          },
+          color: '#374151',
+        },
+        ticks: {
+          color: '#4B5563',
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Capital Invested (CHF)',
+          font: {
+            size: 14,
+            weight: 'bold',
+          },
+          color: '#374151',
+        },
+        ticks: {
+          color: '#4B5563',
+        },
+      },
+    },
+  };
+
+  const COLOR_PALETTE = [
+    '#3281d1', // ZH (blue)
+    '#ffeb54', // VD (yellow)
+    '#7ac93a', // GE (green)
+    '#e88d2c', // ZG (orange-brown)
+    '#997c4c', // BS (brown)
+    '#c1c0b4', // Other (light gray)
+    '#8bbdef', // Light blue
+    '#7c5a1d', // Dark brown
+  ];
+
+  const coloredData = chartData
+    ? {
+        ...chartData,
+        datasets: chartData.datasets.map((dataset, index) => {
+          const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
+          return {
+            ...dataset,
+            backgroundColor: color + 'CC', // ~80% opacity
+            borderColor: color,
+            fill: true,
+            tension: 0.3,
+          };
+        }),
+      }
+    : null;
+
   const renderChart = () => {
-    if (!chartData) return null;
-    const ChartComponent = { line: Line, bar: Bar, pie: Pie }[chartType];
-    return <ChartComponent data={chartData} />;
+    if (!coloredData) return null;
+
+    const ChartComponent = {
+      line: Line,
+      bar: Bar,
+      pie: Pie,
+    }[chartType];
+
+    return <ChartComponent data={coloredData} options={chartOptionsConfig} />;
   };
 
   if (error) return <div>Error: {error}</div>;
