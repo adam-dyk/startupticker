@@ -37,7 +37,7 @@ curl -L "$TICKER_XLSX_URL" -o "$TICKER_XLSX_FILE"
 curl -L "$CRUNCHBASE_XLSX_URL" -o "$CRUNCHBASE_XLSX_FILE"
 
 # Install Python dependencies
-pip show pandas openpyxl > /dev/null 2>&1 || pip install pandas openpyxl
+pip3 show pandas openpyxl psycopg2-binary > /dev/null 2>&1 || pip3 install pandas openpyxl psycopg2-binary 
 
 # Run embedded Python to extract sheet-wise CSVs and generate SQL
 python3 - <<EOF
