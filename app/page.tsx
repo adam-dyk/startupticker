@@ -134,7 +134,7 @@ export default function Home() {
     if (newFilter.values.length === 0) return;
     setFilters([...filters, newFilter]);
     setNewFilter({ column: 'revenue', values: [] });
-    fetchChartData({ filters, valueColumn, aggregationFn: aggregationFn, aggregationField: aggregationField, groupByField });
+    fetchChartData({ filters, valueColumn: filterColumn, aggregationFn: aggregationFn, aggregationField: aggregationField, groupByField });
   };
 
   const handleRemoveFilter = (index: number) => {
