@@ -57,11 +57,11 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chartType, setChartType] = useState<ChartType>('line');
-  const [valueColumn, setValueColumn] = useState('revenue');
+  const [filterColumn, setFilterColumn] = useState('title');
   const [aggregationColumn, setAggregationColumn] = useState('sum');
   const [filters, setFilters] = useState<Filter[]>([]);
   const [newFilter, setNewFilter] = useState<Filter>({
-    column: 'revenue',
+    column: 'title',
     values: [],
   });
   const [chartOptions, setChartOptions] = useState<ChartOptions | null>(null);
@@ -87,7 +87,7 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchChartData({ filters: [], valueColumn, aggregationColumn });
+    fetchChartData({ filters: [], valueColumn: filterColumn, aggregationColumn });
   }, []);
 
   useEffect(() => {
@@ -98,10 +98,9 @@ export default function Home() {
         const options = await response.json();
         setChartOptions(options);
 
-        
         // Set initial values based on first available options
         if (options.filterColumns.length > 0) {
-          setValueColumn(options.filterColumns[0].value);
+          setFilterColumn(options.filterColumns[0].value);
         }
         if (options.aggregationColumns.length > 0) {
           setAggregationColumn(options.aggregationColumns[0].value);
@@ -114,7 +113,7 @@ export default function Home() {
   }, []);
 
   const handleUpdateChart = () => {
-    fetchChartData({ filters, valueColumn, aggregationColumn });
+    fetchChartData({ filters, valueColumn: filterColumn, aggregationColumn });
   };
 
   const handleAddFilter = () => {
@@ -344,8 +343,8 @@ export default function Home() {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Display Field</label>
               <select
-                value={valueColumn}
-                onChange={(e) => setValueColumn(e.target.value)}
+                value={filterColumn}
+                onChange={(e) => setFilterColumn(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-sm text-sm text-gray-700"
               >
                 {chartOptions?.valueColumns.map((column) => (
