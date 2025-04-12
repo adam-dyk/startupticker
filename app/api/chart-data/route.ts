@@ -36,8 +36,8 @@ interface ChartData {
 // === Helpers ===
 function buildFilterSQL(filters: Filter[]): string {
   if (!filters || filters.length === 0) return '';
-  const { column, value } = filters[0];
-  return `WHERE ${column} in (${value})`;
+  const { column, values } = filters[0];
+  return `WHERE ${column} in (${values.map(v => `'${v.replace(/'/g, "''")}'`).join(', ')})`;
 }
 
 function parseAggregateFn(fn: string | undefined): 'SUM' | 'AVG' {
@@ -103,9 +103,8 @@ export async function POST(request: Request) {
       const body = await request.json();
       config = {
         filters: body.filters?.length ? body.filters : [{
-          id: 'default',
           column: 'gender_ceo',
-          value: 'Female'
+          values: ['Female']
         }],
         valueColumn: body.valueColumn || 'amount',
         aggregationColumn: (body.aggregationColumn || 'SUM').toUpperCase()
@@ -114,9 +113,8 @@ export async function POST(request: Request) {
       // Handle completely missing or malformed body
       config = {
         filters: [{
-          id: 'default',
           column: 'gender_ceo',
-          value: 'Female'
+          values: ['Female']
         }],
         valueColumn: 'amount',
         aggregationColumn: 'SUM'
@@ -138,9 +136,8 @@ export async function GET() {
   const defaultConfig: ChartConfig = {
     filters: [
       {
-        id: 'default',
         column: 'gender_ceo',
-        value: 'Female'
+        values: ['Female']
       }
     ],
     valueColumn: 'amount',
