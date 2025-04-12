@@ -45,6 +45,7 @@ interface ChartOptions {
   filterColumns: {
     value: string;
     label: string;
+    options: string[];
   }[];
   chartTypes: { value: string; label: string; icon: string; }[];
   valueColumns: { value: string; label: string; }[];
