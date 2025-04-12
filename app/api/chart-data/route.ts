@@ -17,85 +17,52 @@ interface ChartConfig {
 
 // Mock data generator based on configuration
 function generateChartData(config: ChartConfig) {
-  const timeRangeLabels = {
-    daily: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-    monthly: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    yearly: ['2020', '2021', '2022', '2023', '2024'],
-  };
-
-  const labels = timeRangeLabels[config.timeRange as keyof typeof timeRangeLabels] || timeRangeLabels.monthly;
-
-  // Generate mock data based on display field
-  const generateDataset = (field: string) => {
-    switch (field) {
-      case 'revenue':
-        return labels.map(() => Math.floor(Math.random() * 1000000) + 500000);
-      case 'users':
-        return labels.map(() => Math.floor(Math.random() * 20000) + 30000);
-      case 'growth':
-        return labels.map(() => Math.floor(Math.random() * 30) + 10);
-      default:
-        return labels.map(() => Math.floor(Math.random() * 100));
-    }
-  };
-
-  // Apply filters (mock implementation)
-  const applyFilters = (data: number[]) => {
-    return data.map(value => {
-      let filtered = value;
-      config.filters.forEach(filter => {
-        if (filter.column === config.displayField) {
-          const filterValue = parseFloat(filter.value);
-          if (!isNaN(filterValue)) {
-            switch (filter.operator) {
-              case '>':
-                filtered = value > filterValue ? value : 0;
-                break;
-              case '<':
-                filtered = value < filterValue ? value : 0;
-                break;
-              case '=':
-                filtered = value === filterValue ? value : 0;
-                break;
-              case '!=':
-                filtered = value !== filterValue ? value : 0;
-                break;
-            }
-          }
-        }
-      });
-      return filtered;
-    });
-  }
-
-  const fetchDatasets = (config: ChartConfig) => {
+  const fetchDatasets = (config: ChartConfig): { labels: string[]; datasets: { label: string; data: number[] }[] } => {
     // TODO AXEL: Fetch data from database
+    // labels = ["2001", "2002", "2003", "2004", "2005"]
+    // label = "Biotech"
+    // data = [100000, 200000, 300000, 400000, 500000]
 
-    const data = generateDataset(config.displayField);
-    const data2 = generateDataset(config.displayField);
-    const filteredData = applyFilters(data);
-    const filteredData2 = applyFilters(data2);
-    return {
-      labels: timeRangeLabels[config.timeRange as keyof typeof timeRangeLabels] || timeRangeLabels.monthly,
-      datasets: [
+    const labels = ["2001", "2002", "2003", "2004", "2005"];
+    return {labels: labels, datasets: [
       {
-        label: config.displayField.charAt(0).toUpperCase() + config.displayField.slice(1),
-        data: filteredData,
-        borderColor: 'rgb(59, 130, 246)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        tension: 0.3,
+        label: "Biotech",
+        data: labels.map(() => Math.floor(Math.random() * 1000000) + 500000)
       },
       {
-        label: config.displayField.charAt(0).toUpperCase() + config.displayField.slice(1),
-        data: filteredData2,
-        borderColor: 'rgb(246, 59, 234)',
-        backgroundColor: 'rgba(59, 130, 246, 0.1)',
-        tension: 0.3,
+        label: "Cleantech",
+        data: labels.map(() => Math.floor(Math.random() * 1000000) + 500000)
+      },
+      {
+        label: "Healthcare",
+        data: labels.map(() => Math.floor(Math.random() * 1000000) + 500000)
       }
-    ]}
+    ]
+  };
+}
+
+  const data = fetchDatasets(config);
+
+  const getRandomColor = () => {
+    const r = Math.floor(Math.random() * 255);
+    const g = Math.floor(Math.random() * 255);
+    const b = Math.floor(Math.random() * 255);
+    return `rgb(${r}, ${g}, ${b})`;
   };
 
-  return fetchDatasets(config);
+  return {
+    labels: data.labels,
+    datasets: data.datasets.map(dataset => {
+      const color = getRandomColor();
+      return {
+        label: dataset.label,
+        data: dataset.data,
+        borderColor: color,
+        backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+        tension: 0.3,
+      };
+    })
+  };
 }
 
 export async function POST(request: Request) {
