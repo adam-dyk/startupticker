@@ -61,6 +61,8 @@ export async function generateChartData({
     .replace('{{COMPANIES_FILTER}}', filterSQL)
     .replace('{{AGGREGATE_FUNCTION}}', aggregateFn);
 
+    console.log(finalSql);
+
   const result = await pool.query(finalSql);
 
   const grouped: Record<string, { [year: string]: number }> = {};
@@ -96,33 +98,11 @@ export async function generateChartData({
 
 export async function POST(request: Request) {
   try {
-    let config: ChartConfig;
+    const body = await request.json();
+    console.log(body);
 
-    // Attempt to parse body; fallback to default config if it fails or is empty
-    try {
-      const body = await request.json();
-      config = {
-        filters: body.filters?.length ? body.filters : [{
-          column: 'gender_ceo',
-          values: ['Female']
-        }],
-        valueColumn: body.valueColumn || 'amount',
-        aggregationColumn: (body.aggregationColumn || 'SUM').toUpperCase()
-      };
-    } catch {
-      // Handle completely missing or malformed body
-      config = {
-        filters: [{
-          column: 'gender_ceo',
-          values: ['Female']
-        }],
-        valueColumn: 'amount',
-        aggregationColumn: 'SUM'
-      };
-    }
-
-    const filterSQL = buildFilterSQL(config.filters);
-    const aggregateFn = parseAggregateFn(config.aggregationColumn);
+    const filterSQL = buildFilterSQL(body.filters);
+    const aggregateFn = parseAggregateFn(body.aggregationColumn);
 
     const data = await generateChartData({ filterSQL, aggregateFn });
     return NextResponse.json(data);
