@@ -1,6 +1,16 @@
 WITH selected_startups AS (
   SELECT * FROM swiss.companies
   {{COMPANIES_FILTER}}
+),
+selected AS (
+  SELECT DISTINCT {{GROUP_BY_FIELD}}
+  FROM swiss.deals d
+  JOIN swiss.companies c ON LOWER(TRIM(d.company)) = LOWER(TRIM(c.title))
+  JOIN selected_startups s ON c.title = s.title
+  WHERE d.amount IS NOT NULL
+    AND d.date_of_the_funding_round BETWEEN DATE '2015-01-01' AND DATE '2025-01-01'
+    AND d.type != 'EXIT'
+    AND {{GROUP_BY_FIELD}} IS NOT NULL
 )
 SELECT
   EXTRACT(YEAR FROM d.date_of_the_funding_round) AS year,
@@ -18,6 +28,7 @@ WHERE {{AGGREGATE_FIELD}} IS NOT NULL
   AND d.date_of_the_funding_round BETWEEN DATE '2015-01-01' AND DATE '2025-01-01'
   AND {{GROUP_BY_FIELD}} IS NOT NULL
   AND d.type != 'EXIT'
+  AND {{GROUP_BY_FIELD}} IN (SELECT {{GROUP_BY_FIELD}} FROM selected)
 GROUP BY
   EXTRACT(YEAR FROM d.date_of_the_funding_round), {{GROUP_BY_FIELD}}, group_label
 ORDER BY

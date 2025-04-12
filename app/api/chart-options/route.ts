@@ -46,10 +46,13 @@ export async function GET() {
     ],
     aggregationFields: [
       { value: 'd.amount', label: 'Capital Invested' },
+      { value: 'd.valuation', label: 'Valuation' },
+      { value: 'd.date_of_the_funding_round', label: 'Funding Rounds' },
     ],
     aggregationFns: [
       { value: 'SUM', label: 'Sum' },
       { value: 'AVG', label: 'Average' },
+      { value: 'COUNT', label: 'Count' },
       { value: 'MAX', label: 'Maximum' },
       { value: 'MIN', label: 'Minimum' },
     ],

@@ -54,12 +54,9 @@ function buildFilterSQL(filters: Filter[]): string {
 function buildValueString(filters: Filter[]): string {
   if (!filters || filters.length === 0) return '';
 
-  let filterString = '';
-
-  filters.forEach((filter, index) => {
-    filterString += `${filter.values
-      .join(', ')})`;
-  });
+  const filterString = filters
+    .map(filter => `${filter.values.join('')}`)
+    .join(' - ');
 
   return filterString.trim();
 }
@@ -93,11 +90,12 @@ export async function generateChartData({
 
   const grouped: Record<string, { [year: string]: number }> = {};
   const yearSet: Set<string> = new Set();
-  console.log(result.rows)
 
   for (const row of result.rows) {
     const year = row.year.toString();
-    const label = `${row.group_by_label} (${row.group_label})`;
+    const label = row.group_label
+      ? `${row.group_by_label} (${row.group_label})`
+      : `${row.group_by_label}`;
     yearSet.add(year);
     grouped[label] ??= {};
     grouped[label][year] = Number(row.aggregate_label);
