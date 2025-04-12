@@ -42,11 +42,12 @@ interface ChartData {
 type ChartType = 'line' | 'bar' | 'pie';
 
 interface ChartOptions {
-  columns: {
+  filterColumns: {
     value: string;
     label: string;
   }[];
   chartTypes: { value: string; label: string; icon: string; }[];
+  valueColumns: { value: string; label: string; }[];
   aggregationColumns: { value: string; label: string; }[];
 }
 
@@ -95,8 +96,15 @@ export default function Home() {
         if (!response.ok) throw new Error('Failed to fetch chart options');
         const options = await response.json();
         setChartOptions(options);
-        if (options.columns.length > 0) setValueColumn(options.columns[0].value);
-        if (options.aggregationColumns.length > 0) setAggregationColumn(options.aggregationColumns[0].value);
+
+        
+        // Set initial values based on first available options
+        if (options.filterColumns.length > 0) {
+          setValueColumn(options.filterColumns[0].value);
+        }
+        if (options.aggregationColumns.length > 0) {
+          setAggregationColumn(options.aggregationColumns[0].value);
+        }
       } catch (err) {
         console.error('Failed to fetch chart options:', err);
       }
@@ -155,8 +163,11 @@ export default function Home() {
               onChange={(e) => setNewFilter({ ...newFilter, column: e.target.value })}
               className="px-4 py-2 border border-gray-300 rounded-sm text-sm text-gray-700"
             >
-              {chartOptions?.columns.map((column) => (
-                <option key={column.value} value={column.value}>{column.label}</option>
+              {chartOptions?.filterColumns.map((column) => (
+                <option key={column.value} value={column.value}>
+                  {column.label}
+                </option>
+
               ))}
             </select>
 
@@ -191,8 +202,9 @@ export default function Home() {
             {filters.map((filter, index) => (
               <div key={index} className="flex items-center gap-2 bg-red-50 px-4 py-1.5 rounded-full border border-red-100">
                 <span className="text-sm text-red-700">
-                  <span className="font-medium">{chartOptions?.columns.find(c => c.value === filter.column)?.label}</span>
+                  <span className="font-medium">{chartOptions?.filterColumns.find(c => c.value === filter.column)?.label}</span>
                   <span className="text-red-500 mx-1">:</span>
+
                   <span className="font-medium">{filter.values.join(', ')}</span>
                 </span>
                 <button onClick={() => handleRemoveFilter(index)} className="text-red-400 hover:text-red-600">×</button>
@@ -213,8 +225,10 @@ export default function Home() {
                 onChange={(e) => setValueColumn(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-sm text-sm text-gray-700"
               >
-                {chartOptions?.columns.map((column) => (
-                  <option key={column.value} value={column.value}>{column.label}</option>
+                {chartOptions?.valueColumns.map((column) => (
+                  <option key={column.value} value={column.value}>
+                    {column.label}
+                  </option>
                 ))}
               </select>
             </div>

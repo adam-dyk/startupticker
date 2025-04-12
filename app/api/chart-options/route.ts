@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const chartOptions = {
-  columns: [
+  filterColumns: [
     { 
       value: 'title',
       label: 'Company Name'
@@ -27,6 +27,10 @@ const chartOptions = {
     { value: 'line', label: 'Line Chart', icon: '📈' },
     { value: 'bar', label: 'Bar Chart', icon: '📊' },
     { value: 'pie', label: 'Pie Chart', icon: '🥧' }
+  ],
+  valueColumns: [
+    { value: 'funds_raised', label: 'Funds Raised' },
+    { value: 'total_monies', label: 'Total Monies' },
   ],
   aggregationColumns: [
     { value: 'company', label: 'Company' },
