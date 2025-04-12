@@ -256,11 +256,12 @@ export default function Home() {
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         {/* Filters */}
-        <section className="border border-gray-200 rounded-sm bg-white p-5 mb-6 shadow-sm">
-          <div className="flex justify-between items-center mb-4">
+        <section className="border border-gray-200 rounded-sm bg-white p-5 mb-1 shadow-sm">
+          <div className="flex justify-between items-center mb-1">
             <h2 className="text-base font-semibold text-gray-800">Filters</h2>
             <button onClick={handleResetFilters} className="px-3 py-1 border border-gray-300 rounded-sm text-sm text-gray-700 bg-white hover:bg-gray-50">Reset All</button>
           </div>
+          <p className="text-sm text-gray-500 mb-4">Narrow down your data by selecting specific values for each column. You can add multiple values to create more detailed filters.</p>
 
           {/* Filter Builder */}
           <div className="flex flex-col gap-3 mb-6">
@@ -352,7 +353,8 @@ export default function Home() {
 
         {/* Chart Configuration */}
         <section className="border border-gray-200 rounded-sm bg-white p-5 mb-6 shadow-sm">
-          <h2 className="text-base font-semibold text-gray-800 mb-4">Chart Configuration</h2>
+          <h2 className="text-base font-semibold text-gray-800 mb-1">Chart Configuration</h2>
+          <p className="text-sm text-gray-500 mb-4">Customize how your data is displayed by selecting the chart type, axes, and aggregation method. Choose from various visualization options to best represent your data.</p>
 
           <div className="grid grid-cols-2 gap-6 mb-4">
             <div>
