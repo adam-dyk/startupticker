@@ -42,11 +42,11 @@ export async function GET() {
       { value: 'pie', label: 'Pie Chart', icon: '🥧' }
     ],
     valueColumns: [
-      { value: 'd.amount', label: 'Capital Invested' },
+      { value: 'd.amount', label: 'Capital Invested (CHF)' },
     ],
     aggregationFields: [
-      { value: 'd.amount', label: 'Capital Invested' },
-      { value: 'd.valuation', label: 'Valuation' },
+      { value: 'd.amount', label: 'Capital Invested (CHF)' },
+      { value: 'd.valuation', label: 'Valuation (CHF)' },
       { value: 'd.date_of_the_funding_round', label: 'Funding Rounds' },
     ],
     aggregationFns: [

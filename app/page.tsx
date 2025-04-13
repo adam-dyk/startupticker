@@ -63,6 +63,50 @@ export default function Home() {
   const [aggregationFn, setAggregationFn] = useState('sum');
   const [aggregationField, setAggregationField] = useState('d.amount');
   const [groupByField, setGroupByField] = useState('c.industry');
+  const [chartTitle, setChartTitle] = useState('Total of Capital Invested By Industry');
+  const [chartOptionsConfig, setChartOptionsConfig] = useState({
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: chartTitle,
+        font: { size: 18, weight: 'bold' },
+        color: '#111827',
+        padding: { top: 10, bottom: 20 },
+      },
+      legend: {
+        position: 'right',
+        labels: {
+          color: '#374151',
+          font: { size: 12 },
+        },
+      },
+    },
+    scales: {
+      x: {
+        title: {
+          display: true,
+          text: 'Year',
+          font: { size: 14, weight: 'bold' },
+          color: '#374151',
+        },
+        ticks: {
+          color: '#4B5563',
+        },
+      },
+      y: {
+        title: {
+          display: true,
+          text: 'Capital Invested (CHF)', // initial default
+          font: { size: 14, weight: 'bold' },
+          color: '#374151',
+        },
+        ticks: {
+          color: '#4B5563',
+        },
+      },
+    },
+  });
   const [filters, setFilters] = useState<Filter[]>([]);
   const [newFilter, setNewFilter] = useState<Filter>({
     column: 'title',
@@ -127,7 +171,52 @@ export default function Home() {
   }, []);
 
   const handleUpdateChart = () => {
-    fetchChartData({ filters, valueColumn: filterColumn, aggregationFn: aggregationFn, aggregationField: aggregationField, groupByField });
+    // Resolve labels
+    let aggregationLabel =
+      chartOptions?.aggregationFns.find(fn => fn.value.toUpperCase() === aggregationFn.toUpperCase())?.label || aggregationFn;
+
+    const fieldLabel =
+      chartOptions?.aggregationFields.find(f => f.value === aggregationField)?.label || aggregationField;
+
+    const groupByLabel =
+      chartOptions?.groupByFields.find(g => g.value === groupByField)?.label || groupByField;
+
+    if (aggregationLabel.toLowerCase() === 'sum') {
+      aggregationLabel = 'Total';
+    }
+
+    const title = `${aggregationLabel} of ${fieldLabel} by ${groupByLabel}`;
+    setChartTitle(title);
+
+    // Update chart options
+    setChartOptionsConfig(prev => ({
+      ...prev,
+      plugins: {
+        ...prev.plugins,
+        title: {
+          ...prev.plugins.title,
+          text: title,
+        },
+      },
+      scales: {
+        ...prev.scales,
+        y: {
+          ...prev.scales.y,
+          title: {
+            ...prev.scales.y.title,
+            text: `${aggregationLabel} of ${fieldLabel}`,
+          },
+        },
+      },
+    }));
+
+    fetchChartData({
+      filters,
+      valueColumn: filterColumn,
+      aggregationFn,
+      aggregationField,
+      groupByField,
+    });
   };
 
   const handleAddFilter = () => {
@@ -146,63 +235,6 @@ export default function Home() {
     setNewFilter({ column: 'revenue', values: [] });
   };
 
-  const chartOptionsConfig = {
-    responsive: true,
-    plugins: {
-      title: {
-        display: true,
-        text: 'Capital Invested Over Time', // ← your chart title
-        font: {
-          size: 18,
-          weight: 'bold',
-        },
-        color: '#111827', // Tailwind's gray-900
-        padding: {
-          top: 10,
-          bottom: 20,
-        },
-      },
-      legend: {
-        position: 'right',
-        labels: {
-          color: '#374151', // Tailwind's gray-700
-          font: {
-            size: 12,
-          },
-        },
-      },
-    },
-    scales: {
-      x: {
-        title: {
-          display: true,
-          text: 'Year',
-          font: {
-            size: 14,
-            weight: 'bold',
-          },
-          color: '#374151',
-        },
-        ticks: {
-          color: '#4B5563',
-        },
-      },
-      y: {
-        title: {
-          display: true,
-          text: 'Capital Invested (CHF)',
-          font: {
-            size: 14,
-            weight: 'bold',
-          },
-          color: '#374151',
-        },
-        ticks: {
-          color: '#4B5563',
-        },
-      },
-    },
-  };
 
   const COLOR_PALETTE = [
     '#3281d1', // ZH (blue)
@@ -361,7 +393,15 @@ export default function Home() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Aggregate Field</label>
               <select
                 value={aggregationField}
-                onChange={(e) => setAggregationField(e.target.value)}
+                onChange={(e) => {
+                  const newField = e.target.value;
+                  setAggregationField(newField);
+
+                  const selectedLabel = chartOptions?.aggregationFields.find(f => f.value === newField)?.label;
+                  if (selectedLabel === 'Funding Rounds') {
+                    setAggregationFn('COUNT');
+                  }
+                }}
                 className="w-full px-4 py-2 border border-gray-300 rounded-sm text-sm text-gray-700"
               >
                 {chartOptions?.aggregationFields.map((column) => (
@@ -378,9 +418,18 @@ export default function Home() {
                 onChange={(e) => setAggregationFn(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-sm text-sm text-gray-700"
               >
-                {chartOptions?.aggregationFns.map((range) => (
-                  <option key={range.value} value={range.value}>{range.label}</option>
-                ))}
+                {chartOptions?.aggregationFns
+                  .filter(fn => {
+                    const selectedField = chartOptions?.aggregationFields.find(f => f.value === aggregationField);
+                    if (selectedField?.label === 'Funding Rounds') {
+                      return fn.value.toUpperCase() === 'COUNT';
+                    }
+                    return true;
+                  })
+                  .map((fn) => (
+                    <option key={fn.value} value={fn.value}>{fn.label}</option>
+                  ))
+                }
               </select>
             </div>
             <div>
