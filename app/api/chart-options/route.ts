@@ -47,7 +47,7 @@ export async function GET() {
     aggregationFields: [
       { value: 'd.amount', label: 'Capital Invested (CHF)' },
       { value: 'd.valuation', label: 'Valuation (CHF)' },
-      { value: 'd.date_of_the_funding_round', label: 'Funding Rounds' },
+      { value: 'd.date_of_the_funding_round', label: 'Financing Rounds' },
     ],
     aggregationFns: [
       { value: 'SUM', label: 'Sum' },
@@ -57,8 +57,8 @@ export async function GET() {
       { value: 'MIN', label: 'Minimum' },
     ],
     groupByFields: [
-      { value: 'c.industry', label: 'Industry' },
       { value: 'd.phase', label: 'Phase' },
+      { value: 'c.industry', label: 'Sector' },
       { value: 'c.gender_ceo', label: 'CEO Gender' },
     ]
   };

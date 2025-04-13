@@ -62,8 +62,8 @@ export default function Home() {
   const [filterColumn, setFilterColumn] = useState('d.amount');
   const [aggregationFn, setAggregationFn] = useState('sum');
   const [aggregationField, setAggregationField] = useState('d.amount');
-  const [groupByField, setGroupByField] = useState('c.industry');
-  const [chartTitle, setChartTitle] = useState('Total of Capital Invested By Industry');
+  const [groupByField, setGroupByField] = useState('d.phase');
+  const [chartTitle, setChartTitle] = useState('Capital Invested By Phase');
   const [chartOptionsConfig, setChartOptionsConfig] = useState({
     responsive: true,
     plugins: {
@@ -181,11 +181,18 @@ export default function Home() {
     const groupByLabel =
       chartOptions?.groupByFields.find(g => g.value === groupByField)?.label || groupByField;
 
+    aggregationLabel = `${aggregationLabel}`
+
     if (aggregationLabel.toLowerCase() === 'sum') {
-      aggregationLabel = 'Total';
+      aggregationLabel = '';
     }
 
-    const title = `${aggregationLabel} of ${fieldLabel} by ${groupByLabel}`;
+
+    if (aggregationLabel.toLowerCase() === 'count') {
+      aggregationLabel = 'Number of';
+    }
+
+    const title = `${aggregationLabel} ${fieldLabel} by ${groupByLabel}`;
     setChartTitle(title);
 
     // Update chart options
@@ -204,7 +211,7 @@ export default function Home() {
           ...prev.scales.y,
           title: {
             ...prev.scales.y.title,
-            text: `${aggregationLabel} of ${fieldLabel}`,
+            text: `${aggregationLabel} ${fieldLabel}`,
           },
         },
       },
@@ -398,7 +405,7 @@ export default function Home() {
                   setAggregationField(newField);
 
                   const selectedLabel = chartOptions?.aggregationFields.find(f => f.value === newField)?.label;
-                  if (selectedLabel === 'Funding Rounds') {
+                  if (selectedLabel === 'Financing Rounds') {
                     setAggregationFn('COUNT');
                   }
                 }}
@@ -421,7 +428,7 @@ export default function Home() {
                 {chartOptions?.aggregationFns
                   .filter(fn => {
                     const selectedField = chartOptions?.aggregationFields.find(f => f.value === aggregationField);
-                    if (selectedField?.label === 'Funding Rounds') {
+                    if (selectedField?.label === 'Financing Rounds') {
                       return fn.value.toUpperCase() === 'COUNT';
                     }
                     return true;
