@@ -58,12 +58,13 @@ export default function Home() {
   const [chartData, setChartData] = useState<ChartData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [chartType, setChartType] = useState<ChartType>('line');
+  const [chartType, setChartType] = useState<ChartType>('line');         // current active chart
+  const [selectedChartType, setSelectedChartType] = useState<ChartType>('line'); // user dropdown selection
   const [filterColumn, setFilterColumn] = useState('d.amount');
   const [aggregationFn, setAggregationFn] = useState('sum');
   const [aggregationField, setAggregationField] = useState('d.amount');
   const [groupByField, setGroupByField] = useState('d.phase');
-  const [chartTitle, setChartTitle] = useState('Capital Invested By Phase');
+  const [chartTitle, setChartTitle] = useState('Capital Invested (CHF) by Phase');
   const [chartOptionsConfig, setChartOptionsConfig] = useState({
     responsive: true,
     plugins: {
@@ -135,8 +136,8 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchChartData({ filters: [], valueColumn: filterColumn, aggregationFn: aggregationFn, aggregationField, groupByField });
-  }, []);
+    fetchChartData({ filters, valueColumn: filterColumn, aggregationFn, aggregationField, groupByField, chartType });
+  }, [filters, filterColumn, aggregationFn, aggregationField, groupByField, chartType]);
 
   useEffect(() => {
     const fetchOptions = async () => {
@@ -171,8 +172,10 @@ export default function Home() {
   }, []);
 
   const handleUpdateChart = () => {
-    // Resolve labels
-    let aggregationLabel =
+    setChartType(selectedChartType);
+
+    // Update chart options config
+    const aggregationLabel =
       chartOptions?.aggregationFns.find(fn => fn.value.toUpperCase() === aggregationFn.toUpperCase())?.label || aggregationFn;
 
     const fieldLabel =
@@ -181,41 +184,59 @@ export default function Home() {
     const groupByLabel =
       chartOptions?.groupByFields.find(g => g.value === groupByField)?.label || groupByField;
 
-    aggregationLabel = `${aggregationLabel}`
+    var title = `${aggregationLabel === 'Sum' ? 'Total' : aggregationLabel} of ${fieldLabel} by ${groupByLabel}`;
 
-    if (aggregationLabel.toLowerCase() === 'sum') {
-      aggregationLabel = '';
+    if (selectedChartType == 'pie') {
+      title += ' (2024)';
     }
 
-
-    if (aggregationLabel.toLowerCase() === 'count') {
-      aggregationLabel = 'Number of';
-    }
-
-    const title = `${aggregationLabel} ${fieldLabel} by ${groupByLabel}`;
     setChartTitle(title);
 
-    // Update chart options
-    setChartOptionsConfig(prev => ({
-      ...prev,
+    setChartOptionsConfig({
+      responsive: true,
+      maintainAspectRatio: true,
+      ...(selectedChartType === 'pie' && {
+        aspectRatio: 1.5, // ⬅️ increase for smaller pie chart
+        layout: {
+          padding: 20,
+        },
+      }),
       plugins: {
-        ...prev.plugins,
         title: {
-          ...prev.plugins.title,
-          text: title,
+          display: true,
+          text: chartTitle,
+          font: { size: 18, weight: 'bold' },
+          color: '#111827',
+          padding: { top: 10, bottom: 20 },
+        },
+        legend: {
+          position: 'right',
+          labels: { color: '#374151', font: { size: 12 } },
         },
       },
-      scales: {
-        ...prev.scales,
-        y: {
-          ...prev.scales.y,
-          title: {
-            ...prev.scales.y.title,
-            text: `${aggregationLabel} ${fieldLabel}`,
+      ...(selectedChartType !== 'pie' && {
+        scales: {
+          x: {
+            title: {
+              display: true,
+              text: 'Year',
+              font: { size: 14, weight: 'bold' },
+              color: '#374151',
+            },
+            ticks: { color: '#4B5563' },
+          },
+          y: {
+            title: {
+              display: true,
+              text: title,
+              font: { size: 14, weight: 'bold' },
+              color: '#374151',
+            },
+            ticks: { color: '#4B5563' },
           },
         },
-      },
-    }));
+      }),
+    });
 
     fetchChartData({
       filters,
@@ -223,6 +244,7 @@ export default function Home() {
       aggregationFn,
       aggregationField,
       groupByField,
+      chartType: selectedChartType,
     });
   };
 
@@ -230,7 +252,7 @@ export default function Home() {
     if (newFilter.values.length === 0) return;
     setFilters([...filters, newFilter]);
     setNewFilter({ column: 'revenue', values: [] });
-    fetchChartData({ filters, valueColumn: filterColumn, aggregationFn: aggregationFn, aggregationField: aggregationField, groupByField });
+    fetchChartData({ filters, valueColumn: filterColumn, aggregationFn: aggregationFn, aggregationField: aggregationField, groupByField, chartType });
   };
 
   const handleRemoveFilter = (index: number) => {
@@ -258,6 +280,17 @@ export default function Home() {
     ? {
         ...chartData,
         datasets: chartData.datasets.map((dataset, index) => {
+          if (chartType === 'pie') {
+            return {
+              ...dataset,
+              backgroundColor: chartData.labels.map(
+                (_, i) => COLOR_PALETTE[i % COLOR_PALETTE.length]
+              ),
+              borderColor: '#ffffff',
+              borderWidth: 1,
+            };
+          }
+
           const color = COLOR_PALETTE[index % COLOR_PALETTE.length];
           return {
             ...dataset,
@@ -456,13 +489,13 @@ export default function Home() {
             <label className="block text-sm font-medium text-gray-700 mb-1">Chart Type</label>
             <div className="flex gap-3">
               {chartOptions?.chartTypes.map((type) => (
-                <button
-                  key={type.value}
-                  onClick={() => setChartType(type.value as ChartType)}
-                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-sm border transition-all duration-150 ${chartType === type.value ? 'bg-red-50 text-red-700 border-red-200' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'}`}
-                >
-                  <span>{type.icon}</span>{type.label}
-                </button>
+              <button
+                key={type.value}
+                onClick={() => setSelectedChartType(type.value as ChartType)} // ← staged update
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 text-sm rounded-sm border transition-all duration-150 ${selectedChartType === type.value ? 'bg-red-50 text-red-700 border-red-200' : 'bg-gray-50 text-gray-700 border-gray-300 hover:bg-gray-100'}`}
+              >
+                <span>{type.icon}</span>{type.label}
+              </button>
               ))}
             </div>
           </div>

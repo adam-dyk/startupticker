@@ -16,6 +16,7 @@ export interface ChartConfig {
   aggregateField: string;
   aggregationFn: string;
   groupByField: string;
+  chartType: string;
 }
 
 interface FilterParams {
@@ -73,21 +74,58 @@ export async function generateChartData({
   filterSQL,
   aggregationFn,
   aggregateField,
-  groupByField
+  groupByField,
+  chartType
 }: FilterParams): Promise<ChartData> {
-  // const rawSql = readFileSync('./queries/invested_capital_by_sector.sql', 'utf-8');
-  const rawSql = readFileSync('./queries/general.sql', 'utf-8');
+  const chartQueryMap: Record<string, string> = {
+    pie: './queries/pie_chart.sql',
+    line: './queries/line_chart.sql',
+    bar: './queries/line_chart.sql',
+  };
+
+  const rawSql = readFileSync(chartQueryMap[chartType] || chartQueryMap.line, 'utf-8');
+  const selectedYear = '2024';
+
   const finalSql = rawSql
-    .replaceAll('{{FILTER_VAULE}}', filterValue)
     .replaceAll('{{COMPANIES_FILTER}}', filterSQL)
     .replaceAll('{{AGGREGATE_FUNCTION}}', aggregationFn)
     .replaceAll('{{AGGREGATE_FIELD}}', aggregateField)
-    .replaceAll('{{GROUP_BY_FIELD}}', groupByField);
+    .replaceAll('{{GROUP_BY_FIELD}}', groupByField)
+    .replaceAll('{{FILTER_VAULE}}', filterValue)
+    .replaceAll('{{YEAR}}', selectedYear);
 
   console.log(finalSql);
 
   const result = await pool.query(finalSql);
 
+  if (chartType === 'pie') {
+    const labels: string[] = [];
+    const data: number[] = [];
+
+    for (const row of result.rows) {
+      const label = row.group_label
+        ? `${row.group_by_label} (${row.group_label})`
+        : `${row.group_by_label}`;
+
+      labels.push(label);
+      data.push(Number(row.aggregate_label));
+    }
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: '',
+          data,
+          backgroundColor: labels.map(() => getRandomColor()),
+          borderColor: labels.map(() => 'rgba(255, 255, 255, 1)'),
+          borderWidth: 1
+        }
+      ]
+    };
+  }
+
+  // Time series format (line/bar)
   const grouped: Record<string, { [year: string]: number }> = {};
   const yearSet: Set<string> = new Set();
 
@@ -104,23 +142,15 @@ export async function generateChartData({
   const labels = [...yearSet].sort();
   const datasets = Object.entries(grouped).map(([label, yearlyData]) => ({
     label,
-    data: labels.map(year => yearlyData[year] ?? 0)
+    data: labels.map(year => yearlyData[year] ?? 0),
+    borderColor: getRandomColor(),
+    backgroundColor: getRandomColor().replace('rgb', 'rgba').replace(')', ', 0.2)'),
+    tension: 0.3,
+    fill: true
   }));
 
-  return {
-    labels,
-    datasets: datasets.map(ds => {
-      const color = getRandomColor();
-      return {
-        ...ds,
-        borderColor: color,
-        backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
-        tension: 0.3
-      };
-    })
-  };
+  return { labels, datasets };
 }
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -131,9 +161,10 @@ export async function POST(request: Request) {
     const filterValue = buildValueString(body.filters);
     const aggregateField = body.aggregationField
     const groupByField = body.groupByField.toString()
+    const chartType = body.chartType
     console.log("aggregationFn", aggregationFn);
 
-    const data = await generateChartData({ filterValue, filterSQL, aggregationFn, aggregateField, groupByField });
+    const data = await generateChartData({ filterValue, filterSQL, aggregationFn, aggregateField, groupByField, chartType });
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error in POST /api/chart-data:', error);
@@ -151,15 +182,17 @@ export async function GET() {
     ],
     aggregateField: 'd.amount',
     aggregationFn: 'SUM',
-    groupByField: 'c.industry'
+    groupByField: 'c.industry',
+    chartType: 'line_chart'
   };
 
   const filterSQL = buildFilterSQL(config.filters);
   const filterValue = buildValueString(config.filters);
   const groupByField = config.groupByField.toString() 
+  const chartType  = config.chartType
   const aggregateField = config.aggregationField
   const aggregationFn = config.aggregationFn;
 
-  const data = await generateChartData({ filterValue, filterSQL, aggregationFn, aggregateField, groupByField });
+  const data = await generateChartData({ filterValue, filterSQL, aggregationFn, aggregateField, groupByField, chartType });
   return NextResponse.json(data);
 }
