@@ -9,7 +9,7 @@ selected AS (
   JOIN selected_startups s ON c.title = s.title
   WHERE d.amount IS NOT NULL
     AND d.date_of_the_funding_round BETWEEN DATE '2015-01-01' AND DATE '2025-01-01'
-    AND d.type != 'EXIT'
+    AND d.type = 'VC'
     AND {{GROUP_BY_FIELD}} IS NOT NULL
 )
 SELECT
@@ -27,7 +27,7 @@ WHERE {{AGGREGATE_FIELD}} IS NOT NULL
   AND d.date_of_the_funding_round IS NOT NULL
   AND d.date_of_the_funding_round BETWEEN DATE '2015-01-01' AND DATE '2025-01-01'
   AND {{GROUP_BY_FIELD}} IS NOT NULL
-  AND d.type != 'EXIT'
+  AND d.type = 'VC'
   AND {{GROUP_BY_FIELD}} IN (SELECT {{GROUP_BY_FIELD}} FROM selected)
 GROUP BY
   EXTRACT(YEAR FROM d.date_of_the_funding_round), {{GROUP_BY_FIELD}}, group_label

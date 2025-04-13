@@ -24,7 +24,7 @@ JOIN swiss.companies c ON LOWER(TRIM(d.company)) = LOWER(TRIM(c.title))
 LEFT JOIN selected_startups s ON c.title = s.title
 WHERE {{AGGREGATE_FIELD}} IS NOT NULL
   AND EXTRACT(YEAR FROM d.date_of_the_funding_round) = {{YEAR}}
-  AND d.type != 'EXIT'
+  AND d.type in ('VC', 'EXIT', 'Micro')
   AND {{GROUP_BY_FIELD}} IS NOT NULL
   AND {{GROUP_BY_FIELD}} IN (SELECT {{GROUP_BY_FIELD}} FROM selected)
 GROUP BY {{GROUP_BY_FIELD}}, group_label

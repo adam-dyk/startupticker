@@ -199,6 +199,9 @@ export default function Home() {
     if (selectedChartType == 'pie') {
       title += ' (2024)';
     }
+    if (selectedChartType == 'line') {
+      title += ' 2015-2024';
+    }
 
     setChartTitle(title);
 
@@ -307,7 +310,7 @@ export default function Home() {
             backgroundColor: color + 'CC', // ~80% opacity
             borderColor: color,
             fill: true,
-            tension: 0.3,
+            tension: 0,
           };
         }),
       }
