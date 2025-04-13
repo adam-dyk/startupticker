@@ -174,8 +174,8 @@ export default function Home() {
   const handleUpdateChart = () => {
     setChartType(selectedChartType);
 
-    // Update chart options config
-    const aggregationLabel =
+    // Resolve labels
+    let aggregationLabel =
       chartOptions?.aggregationFns.find(fn => fn.value.toUpperCase() === aggregationFn.toUpperCase())?.label || aggregationFn;
 
     const fieldLabel =
@@ -184,7 +184,17 @@ export default function Home() {
     const groupByLabel =
       chartOptions?.groupByFields.find(g => g.value === groupByField)?.label || groupByField;
 
-    var title = `${aggregationLabel === 'Sum' ? 'Total' : aggregationLabel} of ${fieldLabel} by ${groupByLabel}`;
+    aggregationLabel = `${aggregationLabel}`
+
+    if (aggregationLabel.toLowerCase() === 'sum') {
+      aggregationLabel = '';
+    }
+
+    if (aggregationLabel.toLowerCase() === 'count') {
+      aggregationLabel = 'Number of';
+    }
+
+    let title = `${aggregationLabel} ${fieldLabel} by ${groupByLabel}`;
 
     if (selectedChartType == 'pie') {
       title += ' (2024)';
